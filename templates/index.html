@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Klinik Daun Cabai — Diagnosis Kondisi Tanaman Cabai</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="field-lines"></div>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <span class="brand-mark">🌶️</span>
+      <div class="brand-text">
+        <span class="brand-title">Klinik Daun Cabai</span>
+        <span class="brand-sub">Diagnosis kondisi tanaman berbasis citra</span>
+      </div>
+    </div>
+    <span class="header-tag"><span class="dot-icon">●</span> CNN · MobileNetV2</span>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="hero-text">
+      <p class="eyebrow">Prototipe Layanan Klasifikasi</p>
+      <h1>Foto atau pindai daun cabai, dapatkan diagnosis dalam hitungan detik.</h1>
+      <p class="hero-desc">
+        Ambil citra daun langsung dari kamera perangkat, atau unggah dari galeri. Sistem akan
+        mengenali <strong>5 kondisi</strong> tanaman cabai dan menyusun rekomendasi penanganan
+        yang sesuai — termasuk kapan pestisida <em>benar-benar</em> diperlukan.
+      </p>
+    </div>
+    <div class="hero-badges">
+      <div class="badge">
+        <span class="badge-num">5</span>
+        <span class="badge-label">Kelas Kondisi</span>
+      </div>
+      <div class="badge">
+        <span class="badge-num">224²</span>
+        <span class="badge-label">Resolusi Input</span>
+      </div>
+      <div class="badge">
+        <span class="badge-num">&lt;1s</span>
+        <span class="badge-label">Waktu Inferensi</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= WORKBENCH ================= -->
+  <div class="workbench">
+
+    <!-- ---- Panel 1: Upload / Kamera (ATAS) ---- -->
+    <section class="panel upload-panel">
+      <div class="panel-head">
+        <span class="panel-index">01</span>
+        <h2>Ambil atau Unggah Citra Daun</h2>
+      </div>
+
+      <div class="source-tabs" role="tablist">
+        <button type="button" class="source-tab is-active" id="tab-upload" data-target="upload">
+          <span class="tab-icon">⬆</span> Unggah dari Galeri
+        </button>
+        <button type="button" class="source-tab" id="tab-camera" data-target="camera">
+          <span class="tab-icon">📷</span> Gunakan Kamera
+        </button>
+      </div>
+
+      <form id="upload-form">
+        <!-- Mode: file dropzone -->
+        <div class="source-pane is-active" id="pane-upload">
+          <label class="dropzone" id="dropzone" for="file-input">
+            <div class="dropzone-content" id="dropzone-content">
+              <div id="dropzone-empty">
+                <span class="upload-icon">⬆</span>
+                <p class="dropzone-title">Klik atau seret citra ke sini</p>
+                <p class="dropzone-hint">PNG · JPG · JPEG · WEBP — maks. 8MB</p>
+              </div>
+              <img id="preview-img" class="preview-img" alt="Pratinjau citra" hidden>
+            </div>
+          </label>
+          <input type="file" id="file-input" accept="image/png,image/jpeg,image/jpg,image/webp" hidden>
+        </div>
+
+        <!-- Mode: live camera -->
+        <div class="source-pane" id="pane-camera">
+          <div class="camera-wrap" id="camera-wrap">
+            <video id="camera-video" autoplay playsinline muted></video>
+            <img id="camera-preview" class="preview-img" alt="Citra hasil jepretan kamera" hidden>
+            <div class="camera-hint" id="camera-hint">
+              <span class="upload-icon">📷</span>
+              <p class="dropzone-title">Kamera belum aktif</p>
+              <p class="dropzone-hint">Tekan "Aktifkan Kamera" untuk memulai</p>
+            </div>
+            <canvas id="camera-canvas" hidden></canvas>
+          </div>
+          <div class="camera-controls">
+            <button type="button" class="btn-secondary btn-small" id="camera-start-btn">Aktifkan Kamera</button>
+            <button type="button" class="btn-camera-shutter" id="camera-capture-btn" hidden aria-label="Ambil foto">
+              <span class="shutter-dot"></span>
+            </button>
+            <button type="button" class="btn-secondary btn-small" id="camera-switch-btn" hidden>Ganti Kamera</button>
+            <button type="button" class="btn-secondary btn-small" id="camera-retake-btn" hidden>Ambil Ulang</button>
+          </div>
+          <p class="camera-note">
+            Mendukung kamera belakang/depan HP maupun webcam laptop.
+            Saat diminta izin oleh browser, pilih <strong>"Izinkan"</strong>.
+          </p>
+          <p class="camera-note camera-note--muted">
+            Berjalan di <code>http://127.0.0.1:5000</code> atau <code>http://localhost:5000</code> — bukan dengan membuka berkas HTML secara langsung.
+          </p>
+        </div>
+
+        <button type="submit" class="btn-primary" id="submit-btn" disabled>
+          <span class="btn-label">Jalankan Diagnosis</span>
+          <span class="btn-spinner" hidden></span>
+        </button>
+        <button type="button" class="btn-secondary" id="reset-btn">Reset</button>
+      </form>
+
+      <div class="error-box" id="error-box" hidden></div>
+
+      <div class="legend">
+        <p class="legend-title">Kondisi yang dikenali</p>
+        <ul>
+          <li><span class="swatch swatch-powdery"></span> Powdery Mildew (Embun Tepung)</li>
+          <li><span class="swatch swatch-cercospora"></span> Cercospora (Bercak Daun)</li>
+          <li><span class="swatch swatch-mites"></span> Mites and Thrips (Tungau &amp; Trips)</li>
+          <li><span class="swatch swatch-nutritional"></span> Nutritional (Defisiensi Nutrisi)</li>
+          <li><span class="swatch swatch-healthy"></span> Healthy (Sehat)</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ---- Panel 2: Hasil Analisis (BAWAH, selebar layar) ---- -->
+    <section class="panel result-panel">
+      <div class="panel-head">
+        <span class="panel-index">02</span>
+        <h2>Hasil Diagnosis &amp; Rekomendasi</h2>
+      </div>
+
+      <div class="result-empty" id="result-empty">
+        <div class="scan-frame">
+          <span class="scan-corner tl"></span>
+          <span class="scan-corner tr"></span>
+          <span class="scan-corner bl"></span>
+          <span class="scan-corner br"></span>
+          Menunggu citra untuk dianalisis
+        </div>
+      </div>
+
+      <div class="result-content" id="result-content" hidden>
+        <div class="demo-banner" id="demo-banner" hidden>
+          <i>⚠</i> Model belum dimuat — hasil di bawah ini adalah <code>MODE DEMO</code> (probabilitas acak).
+        </div>
+
+        <div class="result-header">
+          <span class="severity-pill" id="severity-pill">Severity: -</span>
+          <h3 id="pred-label">-</h3>
+          <p class="pred-kategori" id="pred-kategori"></p>
+        </div>
+
+        <div class="confidence-block">
+          <div class="confidence-top">
+            <span>Tingkat Keyakinan</span>
+            <span id="confidence-value">0%</span>
+          </div>
+          <div class="confidence-track">
+            <div class="confidence-fill" id="confidence-fill"></div>
+          </div>
+        </div>
+
+        <div class="probs-block">
+          <p class="section-label">Distribusi Probabilitas Seluruh Kelas</p>
+          <div class="probs-list" id="probs-list"></div>
+        </div>
+        <p class="inference-meta" id="inference-meta"></p>
+
+        <hr class="divider">
+
+        <p class="section-label">Deskripsi Kondisi</p>
+        <p class="reco-desc" id="reco-deskripsi"></p>
+
+        <div class="health-analysis-card" id="health-analysis-card">
+          <div class="reco-card-head">
+            <span class="reco-icon">🩺</span>
+            <h4>Analisis Deskriptif: Dampak terhadap Kesehatan Manusia</h4>
+          </div>
+          <p class="health-analysis-text" id="health-analysis-text"></p>
+        </div>
+
+        <div class="reco-grid">
+          <div class="reco-card reco-card--residu">
+            <div class="reco-card-head">
+              <span class="reco-icon">🧪</span>
+              <h4>Rekomendasi Residu Pestisida</h4>
+            </div>
+            <ul id="list-residu"></ul>
+          </div>
+          <div class="reco-card reco-card--over">
+            <div class="reco-card-head">
+              <span class="reco-icon">⚠️</span>
+              <h4>Dampak Jika Berlebihan</h4>
+            </div>
+            <ul id="list-over"></ul>
+          </div>
+          <div class="reco-card reco-card--under">
+            <div class="reco-card-head">
+              <span class="reco-icon">📉</span>
+              <h4>Dampak Jika Dibiarkan / Kekurangan</h4>
+            </div>
+            <ul id="list-under"></ul>
+          </div>
+          <div class="reco-card reco-card--action">
+            <div class="reco-card-head">
+              <span class="reco-icon">✅</span>
+              <h4>Tindakan yang Disarankan</h4>
+            </div>
+            <ul id="list-action"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="disclaimer">
+    <p>
+      Rekomendasi residu pestisida bersifat edukatif/deskriptif sebagai prototipe penelitian,
+      bukan pengganti anjuran resmi Pengendalian Hama Terpadu (PHT) dari penyuluh pertanian
+      atau label produk pestisida terdaftar Kementerian Pertanian RI. Dosis aktual wajib
+      mengikuti label kemasan produk yang terdaftar/berizin.
+    </p>
+  </div>
+</main>
+
+<footer class="site-footer">
+  Klinik Daun Cabai — Prototipe Skripsi CNN Transfer Learning MobileNetV2
+</footer>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
