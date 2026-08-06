@@ -12,6 +12,7 @@ WORKDIR /app
 # Install dependensi sistem dasar
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy file requirements terlebih dahulu untuk caching layer Docker
