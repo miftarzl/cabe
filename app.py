@@ -17,6 +17,8 @@ Menjalankan (lokal / VS Code):
 """
 
 import os
+os.environ["TF_USE_LEGACY_KERAS"] = "1"
+
 import io
 import json
 import time
@@ -42,12 +44,6 @@ IMG_SIZE = (224, 224)   # sesuai input MobileNetV2 pada tahap training
 MAX_CONTENT_LENGTH = 8 * 1024 * 1024  # 8 MB
 
 # Ambang batas keyakinan minimum agar prediksi dianggap valid sebagai daun cabai.
-# Model TIDAK punya kelas "bukan daun cabai", jadi gambar apa pun yang diunggah
-# tetap akan dipaksa masuk ke salah satu dari 5 kelas yang ada. Cara paling
-# praktis untuk menolak gambar yang bukan daun cabai (tanpa retraining model)
-# adalah menolak hasil prediksi yang keyakinannya terlalu rendah, karena untuk
-# gambar yang tidak dikenali model, probabilitasnya cenderung tersebar rata ke
-# semua kelas (tidak ada satu kelas yang menonjol).
 MIN_CONFIDENCE_THRESHOLD = 0.60  # 60% — ubah sesuai kebutuhan/skripsimu
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -70,7 +66,17 @@ def load_ml_assets():
     global model, idx_to_class
     if os.path.exists(MODEL_PATH):
         print(f"[INFO] Memuat model dari: {MODEL_PATH}")
-        model = load_model(MODEL_PATH)
+        try:
+            # Coba muat dengan legacy tf_keras jika tersedia
+            import tf_keras as legacy_keras
+            model = legacy_keras.models.load_model(MODEL_PATH, compile=False)
+        except Exception as e1:
+            print(f"[INFO] Gagal menggunakan tf_keras ({e1}), mencoba tensorflow.keras.models.load_model...")
+            try:
+                model = load_model(MODEL_PATH, compile=False)
+            except Exception as e2:
+                print(f"[ERROR] Gagal memuat model: {e2}")
+                model = None
     else:
         print(f"[WARNING] Model tidak ditemukan di {MODEL_PATH}.")
         print("          Letakkan file 'mobilenetv2_cabai_final.h5' hasil training Colab di folder 'model/'.")
