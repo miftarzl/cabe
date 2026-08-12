@@ -66,10 +66,45 @@ idx_to_class = {}
 DEFAULT_CLASSES = ["Cercospora", "Healthy", "Mites_and_Thrips", "Nutritional", "Powdery_Mildew"]
 
 
+def patch_h5_file(filepath):
+    """
+    Keras 3 (TensorFlow 2.16+) memiliki bug saat memuat model H5 dari Keras 2
+    yang mengandung 'quantization_config': null pada layer Dense.
+    Fungsi ini melakukan patch secara langsung pada metadata model_config di file H5
+    untuk menghapus key tersebut sebelum dimuat.
+    """
+    try:
+        import h5py
+        with h5py.File(filepath, "r+") as f:
+            if "model_config" in f.attrs:
+                config_raw = f.attrs["model_config"]
+                if isinstance(config_raw, bytes):
+                    config_raw = config_raw.decode("utf-8")
+                
+                config = json.loads(config_raw)
+                
+                def clean_dict(d):
+                    if isinstance(d, dict):
+                        d.pop("quantization_config", None)
+                        for k, v in list(d.items()):
+                            clean_dict(v)
+                    elif isinstance(d, list):
+                        for item in d:
+                            clean_dict(item)
+                            
+                clean_dict(config)
+                f.attrs["model_config"] = json.dumps(config).encode("utf-8")
+                print("[INFO] Patch model_config berhasil untuk kompatibilitas Keras 3.")
+    except Exception as e:
+        print(f"[WARNING] Gagal melakukan patching model H5 secara otomatis (mungkin file read-only): {e}")
+
+
 def load_ml_assets():
     global model, idx_to_class
     if os.path.exists(MODEL_PATH):
         print(f"[INFO] Memuat model dari: {MODEL_PATH}")
+        # Lakukan patch kompatibilitas Keras 3 terlebih dahulu
+        patch_h5_file(MODEL_PATH)
         model = load_model(MODEL_PATH)
     else:
         print(f"[WARNING] Model tidak ditemukan di {MODEL_PATH}.")
