@@ -37,7 +37,6 @@ const errorBox = document.getElementById('error-box');
 // ---- Elemen: hasil ----
 const resultEmpty = document.getElementById('result-empty');
 const resultContent = document.getElementById('result-content');
-const demoBanner = document.getElementById('demo-banner');
 const severityPill = document.getElementById('severity-pill');
 const predLabel = document.getElementById('pred-label');
 const predKategori = document.getElementById('pred-kategori');
@@ -143,20 +142,14 @@ async function startCamera(facingMode = currentFacingMode) {
     return;
   }
 
-  // PENTING: cek koneksi aman (secure context) LEBIH DULU, sebelum cek
-  // ketersediaan API. Di alamat IP jaringan yang HTTP biasa (mis.
-  // http://192.168.x.x:5000), browser sengaja membuat navigator.mediaDevices
-  // menjadi undefined — bukan karena browser tidak mendukung kamera. Jika
-  // urutan dibalik (seperti sebelumnya), pengguna akan melihat pesan yang
-  // salah/menyesatkan ("browser tidak mendukung akses kamera").
-  if (!isSecureContextForCamera()) {
-    showError('Akses kamera memerlukan koneksi aman. Kamu membuka halaman ini lewat alamat IP jaringan (' + window.location.origin + '), yang tidak dianggap aman oleh browser untuk fitur kamera. Gunakan http://127.0.0.1:5000 atau http://localhost:5000 di komputer ini, atau akses lewat HTTPS jika perlu dibuka dari perangkat lain.');
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    showError('Browser ini tidak mendukung akses kamera. Gunakan Chrome/Safari/Edge versi terbaru, atau pilih "Unggah dari Galeri".');
     setCameraBusy(false);
     return;
   }
 
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    showError('Browser ini tidak mendukung akses kamera. Gunakan Chrome/Safari/Edge versi terbaru, atau pilih "Unggah dari Galeri".');
+  if (!isSecureContextForCamera()) {
+    showError('Akses kamera memerlukan koneksi aman. Jika membuka lewat alamat IP jaringan (mis. 192.168.x.x atau 0.0.0.0), gunakan http://127.0.0.1:5000 di komputer ini, atau akses lewat HTTPS.');
     setCameraBusy(false);
     return;
   }
@@ -212,16 +205,13 @@ async function startCamera(facingMode = currentFacingMode) {
 
   setCameraBusy(false);
 
-  // Tampilkan tombol ganti kamera hanya jika perangkat punya >1 kamera
-  // (mis. HP dengan kamera depan & belakang). Pada laptop dengan 1 webcam,
-  // tombol ini otomatis disembunyikan.
-  try {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const videoInputs = devices.filter(d => d.kind === 'videoinput');
-    cameraSwitchBtn.hidden = videoInputs.length < 2;
-  } catch {
-    cameraSwitchBtn.hidden = true;
-  }
+  // Tombol "Ganti Kamera" selalu ditampilkan begitu kamera aktif. Mencoba
+  // mendeteksi jumlah kamera lewat enumerateDevices() sebelumnya kurang andal
+  // (banyak browser/HP tidak melaporkan jumlah kamera dengan akurat, apalagi
+  // sebelum label perangkat tersedia). Jika perangkat memang cuma punya 1
+  // kamera, klik tombol ini aman saja — browser otomatis memakai kamera yang
+  // sama karena facingMode di atas hanya preferensi ("ideal"), bukan wajib.
+  cameraSwitchBtn.hidden = false;
 }
 
 function setCameraBusy(isBusy) {
@@ -365,8 +355,6 @@ function fillList(ulEl, items) {
 function renderResult(data) {
   resultEmpty.hidden = true;
   resultContent.hidden = false;
-
-  demoBanner.hidden = !data.demo_mode;
 
   const pred = data.prediction;
   const reco = data.recommendation;

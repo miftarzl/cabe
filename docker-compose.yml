@@ -8,7 +8,7 @@ services:
     ports:
       - "8100:80"  # Format: "HOST:CONTAINER" (Akses via http://localhost:8100 atau IP_VPS:8100)
     volumes:
-      - ./static/uploads:/app/static/uploads
+      - ./static:/app/static
       - ./model:/app/model
     environment:
       - PYTHONUNBUFFERED=1

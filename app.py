@@ -17,15 +17,13 @@ Menjalankan (lokal / VS Code):
 """
 
 import os
-os.environ["TF_USE_LEGACY_KERAS"] = "1"
-
 import io
 import json
 import time
 import uuid
 
 import numpy as np
-from flask import Flask, request, jsonify, render_template, url_for
+from flask import Flask, request, jsonify, render_template, url_for, send_from_directory
 from PIL import Image
 import tensorflow as tf
 from tensorflow.keras.models import load_model
@@ -44,6 +42,12 @@ IMG_SIZE = (224, 224)   # sesuai input MobileNetV2 pada tahap training
 MAX_CONTENT_LENGTH = 8 * 1024 * 1024  # 8 MB
 
 # Ambang batas keyakinan minimum agar prediksi dianggap valid sebagai daun cabai.
+# Model TIDAK punya kelas "bukan daun cabai", jadi gambar apa pun yang diunggah
+# tetap akan dipaksa masuk ke salah satu dari 5 kelas yang ada. Cara paling
+# praktis untuk menolak gambar yang bukan daun cabai (tanpa retraining model)
+# adalah menolak hasil prediksi yang keyakinannya terlalu rendah, karena untuk
+# gambar yang tidak dikenali model, probabilitasnya cenderung tersebar rata ke
+# semua kelas (tidak ada satu kelas yang menonjol).
 MIN_CONFIDENCE_THRESHOLD = 0.60  # 60% — ubah sesuai kebutuhan/skripsimu
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -66,17 +70,7 @@ def load_ml_assets():
     global model, idx_to_class
     if os.path.exists(MODEL_PATH):
         print(f"[INFO] Memuat model dari: {MODEL_PATH}")
-        try:
-            # Coba muat dengan legacy tf_keras jika tersedia
-            import tf_keras as legacy_keras
-            model = legacy_keras.models.load_model(MODEL_PATH, compile=False)
-        except Exception as e1:
-            print(f"[INFO] Gagal menggunakan tf_keras ({e1}), mencoba tensorflow.keras.models.load_model...")
-            try:
-                model = load_model(MODEL_PATH, compile=False)
-            except Exception as e2:
-                print(f"[ERROR] Gagal memuat model: {e2}")
-                model = None
+        model = load_model(MODEL_PATH)
     else:
         print(f"[WARNING] Model tidak ditemukan di {MODEL_PATH}.")
         print("          Letakkan file 'mobilenetv2_cabai_final.h5' hasil training Colab di folder 'model/'.")
@@ -154,6 +148,35 @@ def mock_predict(arr: np.ndarray) -> np.ndarray:
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+# ------------------------------------------------------------------
+# PWA ROUTES
+# ------------------------------------------------------------------
+@app.route("/manifest.json")
+def manifest():
+    """Serve Web App Manifest dari root path (diperlukan oleh PWA)."""
+    return send_from_directory(os.path.join(BASE_DIR, "static"), "manifest.json",
+                               mimetype="application/manifest+json")
+
+
+@app.route("/sw.js")
+def service_worker():
+    """Serve Service Worker dari root path agar scope-nya mencakup seluruh app."""
+    response = send_from_directory(os.path.join(BASE_DIR, "static"), "sw.js",
+                                   mimetype="application/javascript")
+    # Header wajib agar browser menerima SW dari path ini
+    response.headers["Service-Worker-Allowed"] = "/"
+    response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
+@app.route("/.well-known/assetlinks.json")
+def asset_links():
+    """Digital Asset Links — diperlukan untuk TWA (Trusted Web Activity).
+    SHA-256 fingerprint diisi setelah APK di-generate via PWABuilder."""
+    return send_from_directory(os.path.join(BASE_DIR, "static"), "assetlinks.json",
+                               mimetype="application/json")
 
 
 @app.route("/health")

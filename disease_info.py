@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 disease_info.py
-Basis pengetahuan hasil klasifikasi kondisi tanaman cabai (Capsicum annuum L.)
+Basis pengetahuan hasil klasifikasi kondisi tanaman cabai 
 Berisi: deskripsi kondisi, rekomendasi residu pestisida, dampak jika berlebihan/kekurangan,
 serta tindakan yang harus dilakukan petani.
 
@@ -171,14 +171,14 @@ DISEASE_INFO = {
         ),
         "perlu_pestisida": False,
         "rekomendasi_residu": [
-            "TIDAK memerlukan aplikasi pestisida/fungisida/insektisida — akar masalahnya bukan hama/penyakit.",
+            "TIDAK memerlukan pestisida/fungisida/insektisida",
             "Berikan pemupukan sesuai unsur yang defisien: Nitrogen (Urea/ZA) untuk klorosis daun tua, "
             "Fosfor (SP-36) untuk daun keunguan, atau Kalium (KCl) untuk nekrosis tepi daun.",
             "Gunakan pupuk daun (foliar fertilizer) untuk penyerapan lebih cepat pada kasus defisiensi akut.",
             "Lakukan uji tanah (soil test) untuk memastikan unsur hara yang benar-benar kurang sebelum pemupukan."
         ],
         "dampak_berlebihan": [
-            "Jika keliru diberi pestisida (bukan pupuk): pemborosan biaya tanpa manfaat, karena akar masalah bukan hama/patogen.",
+            "Jika keliru diberi pestisida (bukan pupuk): pemborosan biaya tanpa manfaat.",
             "Residu kimia pestisida yang tidak perlu tetap tertinggal pada buah meski tidak menyelesaikan defisiensi.",
             "Tanaman semakin stres akibat kombinasi defisiensi nutrisi dan potensi fitotoksisitas dari bahan kimia yang tidak relevan.",
             "Inilah pola kesalahan penanganan utama yang ingin dicegah oleh sistem klasifikasi ini — salah membedakan penyakit dengan defisiensi nutrisi mendorong penyemprotan pestisida yang tidak tepat sasaran."

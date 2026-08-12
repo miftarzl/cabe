@@ -1,0 +1,76 @@
+{
+  "name": "Klinik Daun Cabai",
+  "short_name": "KlinikCabai",
+  "description": "Diagnosis kondisi daun cabai berbasis CNN MobileNetV2 — klasifikasi 5 kondisi penyakit daun cabai secara real-time.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0d0d0d",
+  "theme_color": "#c0392b",
+  "lang": "id",
+  "dir": "ltr",
+  "categories": ["health", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/static/icons/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icons/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icons/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icons/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/static/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Halaman utama Klinik Daun Cabai"
+    }
+  ],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Diagnosa Sekarang",
+      "short_name": "Diagnosa",
+      "description": "Langsung buka fitur upload/kamera untuk diagnosis daun cabai",
+      "url": "/#upload-form",
+      "icons": [
+        {
+          "src": "/static/icons/icon-96.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}

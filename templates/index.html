@@ -4,6 +4,31 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Klinik Daun Cabai — Diagnosis Kondisi Tanaman Cabai</title>
+
+<!-- ═══ PWA Meta Tags ═══════════════════════════════════════ -->
+<meta name="theme-color" content="#c0392b">
+<meta name="description" content="Diagnosis kondisi daun cabai berbasis CNN MobileNetV2 — klasifikasi 5 kondisi penyakit daun cabai secara real-time.">
+<meta name="mobile-web-app-capable" content="yes">
+
+<!-- Apple PWA Tags -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KlinikCabai">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+<link rel="apple-touch-icon" sizes="192x192" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+<link rel="apple-touch-icon" sizes="512x512" href="{{ url_for('static', filename='icons/icon-512.png') }}">
+
+<!-- Open Graph -->
+<meta property="og:title" content="Klinik Daun Cabai">
+<meta property="og:description" content="Diagnosis kondisi daun cabai berbasis CNN MobileNetV2 secara real-time.">
+<meta property="og:image" content="https://klinikdauncabai.my.id/static/icons/icon-512.png">
+<meta property="og:url" content="https://klinikdauncabai.my.id/">
+<meta property="og:type" content="website">
+
+<!-- Web App Manifest (PWA) -->
+<link rel="manifest" href="/manifest.json">
+<!-- ════════════════════════════════════════════════════════════ -->
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -18,7 +43,7 @@
       <span class="brand-mark">🌶️</span>
       <div class="brand-text">
         <span class="brand-title">Klinik Daun Cabai</span>
-        <span class="brand-sub">Diagnosis kondisi tanaman berbasis citra</span>
+        <span class="brand-sub">Diagnosis kondisi Daun berbasis citra</span>
       </div>
     </div>
     <span class="header-tag"><span class="dot-icon">●</span> CNN · MobileNetV2</span>
@@ -28,7 +53,7 @@
 <main>
   <section class="hero">
     <div class="hero-text">
-      <p class="eyebrow">Prototipe Layanan Klasifikasi</p>
+      <p class="eyebrow">Website Layanan Klasifikasi</p>
       <h1>Foto atau pindai daun cabai, dapatkan diagnosis dalam hitungan detik.</h1>
       <p class="hero-desc">
         Ambil citra daun langsung dari kamera perangkat, atau unggah dari galeri. Sistem akan
@@ -107,13 +132,6 @@
             <button type="button" class="btn-secondary btn-small" id="camera-switch-btn" hidden>Ganti Kamera</button>
             <button type="button" class="btn-secondary btn-small" id="camera-retake-btn" hidden>Ambil Ulang</button>
           </div>
-          <p class="camera-note">
-            Mendukung kamera belakang/depan HP maupun webcam laptop.
-            Saat diminta izin oleh browser, pilih <strong>"Izinkan"</strong>.
-          </p>
-          <p class="camera-note camera-note--muted">
-            Berjalan di <code>http://127.0.0.1:5000</code> atau <code>http://localhost:5000</code> — bukan dengan membuka berkas HTML secara langsung.
-          </p>
         </div>
 
         <button type="submit" class="btn-primary" id="submit-btn" disabled>
@@ -155,10 +173,6 @@
       </div>
 
       <div class="result-content" id="result-content" hidden>
-        <div class="demo-banner" id="demo-banner" hidden>
-          <i>⚠</i> Model belum dimuat — hasil di bawah ini adalah <code>MODE DEMO</code> (probabilitas acak).
-        </div>
-
         <div class="result-header">
           <span class="severity-pill" id="severity-pill">Severity: -</span>
           <h3 id="pred-label">-</h3>
@@ -240,9 +254,25 @@
 </main>
 
 <footer class="site-footer">
-  Klinik Daun Cabai — Prototipe Skripsi CNN Transfer Learning MobileNetV2
+  Klinik Daun Cabai — CNN Transfer Learning MobileNetV2
 </footer>
 
 <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+<!-- ═══ PWA Service Worker Registration ═══════════════════ -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js', { scope: '/' })
+        .then((reg) => {
+          console.log('[PWA] Service Worker terdaftar:', reg.scope);
+        })
+        .catch((err) => {
+          console.warn('[PWA] Service Worker gagal didaftarkan:', err);
+        });
+    });
+  }
+</script>
+<!-- ════════════════════════════════════════════════════════ -->
 </body>
 </html>
