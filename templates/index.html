@@ -46,7 +46,24 @@
         <span class="brand-sub">Diagnosis kondisi Daun berbasis citra</span>
       </div>
     </div>
-    <span class="header-tag"><span class="dot-icon">●</span> CNN · MobileNetV2</span>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <button id="pwa-install-btn" style="
+        display: none;
+        background: var(--chili);
+        color: white;
+        border: none;
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-family: var(--font-body);
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        align-items: center;
+        gap: 6px;
+      ">📥 Pasang Aplikasi</button>
+      <span class="header-tag"><span class="dot-icon">●</span> CNN · MobileNetV2</span>
+    </div>
   </div>
 </header>
 
@@ -259,8 +276,9 @@
 
 <script src="{{ url_for('static', filename='script.js') }}"></script>
 
-<!-- ═══ PWA Service Worker Registration ═══════════════════ -->
+<!-- ═══ PWA Service Worker Registration & Install Button ═══════════════════ -->
 <script>
+  // Registrasi Service Worker
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js', { scope: '/' })
@@ -272,6 +290,59 @@
         });
     });
   }
+
+  // Logika Tombol Install PWA
+  let deferredPrompt;
+  const installBtn = document.getElementById('pwa-install-btn');
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    // Mencegah Chrome menunjukkan mini-infobar default secara otomatis
+    e.preventDefault();
+    // Simpan event agar bisa ditrigger nanti
+    deferredPrompt = e;
+    // Tunjukkan tombol install di UI
+    if (installBtn) {
+      installBtn.style.display = 'inline-flex';
+    }
+    console.log('[PWA] Event beforeinstallprompt tertangkap.');
+  });
+
+  if (installBtn) {
+    installBtn.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      // Tampilkan prompt instalasi
+      deferredPrompt.prompt();
+      // Tunggu respons pilihan dari user
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`[PWA] Respons pilihan pengguna: ${outcome}`);
+      // Bersihkan prompt lama, hanya bisa digunakan sekali
+      deferredPrompt = null;
+      // Sembunyikan tombol kembali
+      installBtn.style.display = 'none';
+    });
+  }
+
+  window.addEventListener('appinstalled', (evt) => {
+    console.log('[PWA] Aplikasi berhasil dipasang!');
+    if (installBtn) {
+      installBtn.style.display = 'none';
+    }
+  });
+
+  // Diagnostik Status PWA ke Console
+  window.addEventListener('load', () => {
+    const isLocalhost = ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname);
+    const isSecure = window.isSecureContext;
+    console.log('[PWA] Diagnostik Status:');
+    console.log(' - Protokol:', window.location.protocol);
+    console.log(' - Hostname:', window.location.hostname);
+    console.log(' - Secure Context (wajib untuk PWA):', isSecure);
+    console.log(' - Localhost:', isLocalhost);
+    
+    if (!isSecure && !isLocalhost) {
+      console.warn('[PWA] PWA tidak dapat diinstal karena koneksi tidak aman (HTTP). Silakan gunakan HTTPS atau akses melalui localhost.');
+    }
+  });
 </script>
 <!-- ════════════════════════════════════════════════════════ -->
 </body>

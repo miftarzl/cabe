@@ -10,6 +10,7 @@ services:
     volumes:
       - ./static:/app/static
       - ./model:/app/model
+      - ./templates:/app/templates
     environment:
       - PYTHONUNBUFFERED=1
       - PORT=80
